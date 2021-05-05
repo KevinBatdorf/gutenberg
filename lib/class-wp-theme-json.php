@@ -1199,45 +1199,6 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Whether the selector contains a link element.
-	 *
-	 * @param string $selector The selector to check.
-	 *
-	 * @return boolean
-	 */
-	private static function is_link_element( $selector ) {
-		if ( self::ELEMENTS['link'] === $selector ) {
-			return true;
-		}
-
-		$result = true;
-		if ( false === stripos( $selector, ' ' . self::ELEMENTS['link'] ) ) {
-			$result = false;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Remove the link selector from the input.
-	 *
-	 * @param string $selector CSS selector to process.
-	 *
-	 * @return string
-	 */
-	private static function without_link_selector( $selector ) {
-		if ( self::ELEMENTS['link'] === $selector ) {
-			return $selector;
-		}
-
-		// The selector consist of "<something> <element_selector>".
-		// It can be compounded as well: "<one> <element_selector>, <two> <element_selector>, etc".
-		//
-		// We want to return "<something>" or "<one>, <two>, etc".
-		return str_ireplace( ' ' . self::ELEMENTS['link'], '', $selector );
-	}
-
-	/**
 	 * Removes insecure data from theme.json.
 	 */
 	public function remove_insecure_properties() {
