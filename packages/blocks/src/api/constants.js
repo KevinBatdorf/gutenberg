@@ -13,11 +13,6 @@ export const DEPRECATED_ENTRY_KEYS = [
 ];
 
 export const __EXPERIMENTAL_STYLE_PROPERTY = {
-	'--wp--style--color--link': {
-		valueGlobal: [ 'elements', 'link', 'color', 'text' ],
-		value: [ 'color', 'link' ],
-		support: [ 'color', 'link' ],
-	},
 	background: {
 		value: [ 'color', 'gradient' ],
 		support: [ 'color', 'gradients' ],

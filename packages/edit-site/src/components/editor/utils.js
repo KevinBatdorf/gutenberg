@@ -15,7 +15,7 @@ import { store as editSiteStore } from '../../store';
 export const ROOT_BLOCK_NAME = 'root';
 export const ROOT_BLOCK_SELECTOR = 'body';
 export const ROOT_BLOCK_SUPPORTS = [
-	'--wp--style--color--link',
+	//'--wp--style--color--link',
 	'background',
 	'backgroundColor',
 	'color',
@@ -81,7 +81,6 @@ export const PRESET_METADATA = [
 
 const STYLE_PROPERTIES_TO_CSS_VAR_INFIX = {
 	backgroundColor: 'color',
-	LINK_COLOR: 'color',
 	background: 'gradient',
 };
 
@@ -99,9 +98,6 @@ function getPresetMetadataFromStyleProperty( styleProperty ) {
 	}
 	return getPresetMetadataFromStyleProperty.MAP[ styleProperty ];
 }
-
-export const LINK_COLOR = '--wp--style--color--link';
-export const LINK_COLOR_DECLARATION = `a { color: var(${ LINK_COLOR }, #00e); }`;
 
 export function useSetting( path, blockName = '' ) {
 	const settings = useSelect( ( select ) => {

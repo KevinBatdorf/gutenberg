@@ -116,8 +116,8 @@ function flattenTree( input = {}, prefix, token ) {
 function getStylesDeclarations( blockStyles = {} ) {
 	return reduce(
 		STYLE_PROPERTY,
-		( declarations, { value, valueGlobal, properties }, key ) => {
-			const pathToValue = valueGlobal ?? value;
+		( declarations, { value, properties }, key ) => {
+			const pathToValue = value;
 			if ( !! properties ) {
 				properties.forEach( ( prop ) => {
 					if (
@@ -271,84 +271,15 @@ export const toCustomProperties = ( tree, blockSelectors ) => {
 	return ruleset;
 };
 
-const containsLinkElement = ( selector ) =>
-	selector.toLowerCase().includes( ELEMENTS.link );
-const withoutLinkSelector = ( selector ) => {
-	const newSelector = selector
-		.split( ',' )
-		.map( ( individualSelector ) =>
-			individualSelector.replace( ELEMENTS.link, '' ).trim()
-		)
-		.join( ',' );
-
-	if ( '' === newSelector ) {
-		return ROOT_BLOCK_SELECTOR;
-	}
-
-	return newSelector;
-};
-
 export const toStyles = ( tree, blockSelectors ) => {
 	const nodesWithStyles = getNodesWithStyles( tree, blockSelectors );
 	const nodesWithSettings = getNodesWithSettings( tree, blockSelectors );
 
-	let ruleset = `${ ELEMENTS.link }{color: var(--wp--style--color--link, #00e);}`;
 	nodesWithStyles.forEach( ( { selector, styles } ) => {
 		const declarations = getStylesDeclarations( styles );
 
 		if ( declarations.length === 0 ) {
 			return;
-		}
-
-		if ( ! containsLinkElement( selector ) ) {
-			ruleset = ruleset + `${ selector }{${ declarations.join( ';' ) };}`;
-		} else {
-			// To be removed when the user provided styles for link color
-			// no longer use the --wp--style--link-color variable.
-			//
-			// We need to:
-			//
-			// 1. For the color property, output:
-			//
-			//    $selector_without_the_link_element_selector {
-			//        --wp--style--color--link: value
-			//    }
-			//
-			// 2. For the rest of the properties:
-			//
-			//    $selector {
-			//        other-prop: value;
-			//        other-prop: value;
-			//    }
-			//
-			// The reason for 1 is that user styles are attached to the block wrapper.
-			// If 1 targets the a element is going to have higher specificity
-			// and will overwrite the user preferences.
-			//
-			// Once the user styles are updated to output an `a` element instead
-			// this can be removed.
-
-			const declarationsColor = declarations.filter(
-				( declaration ) => declaration.split( ':' )[ 0 ] === 'color'
-			);
-			const declarationsOther = declarations.filter(
-				( declaration ) => declaration.split( ':' )[ 0 ] !== 'color'
-			);
-
-			if ( declarationsOther.length > 0 ) {
-				ruleset =
-					ruleset +
-					`${ selector }{${ declarationsOther.join( ';' ) };}`;
-			}
-
-			if ( declarationsColor.length === 1 ) {
-				const value = declarationsColor[ 0 ].split( ':' )[ 1 ];
-				ruleset =
-					ruleset +
-					`${ withoutLinkSelector(
-						selector
-					) }{--wp--style--color--link:${ value };}`;
-			}
 		}
 	} );
 
