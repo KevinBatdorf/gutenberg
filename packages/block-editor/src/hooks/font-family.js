@@ -6,7 +6,9 @@ import { find } from 'lodash';
 /**
  * WordPress dependencies
  */
+import { addFilter } from '@wordpress/hooks';
 import { hasBlockSupport } from '@wordpress/blocks';
+import TokenList from '@wordpress/token-list';
 
 /**
  * Internal dependencies
@@ -17,18 +19,38 @@ import FontFamilyControl from '../components/font-family';
 
 export const FONT_FAMILY_SUPPORT_KEY = '__experimentalFontFamily';
 
-const getFontFamilyFromAttributeValue = ( fontFamilies, value ) => {
-	const attributeParsed = /var:preset\|font-family\|(.+)/.exec( value );
-	if ( attributeParsed && attributeParsed[ 1 ] ) {
-		const fontFamilyObject = find( fontFamilies, ( { slug } ) => {
-			return slug === attributeParsed[ 1 ];
-		} );
-		if ( fontFamilyObject ) {
-			return fontFamilyObject.fontFamily;
-		}
+/**
+ * Override props assigned to save component to inject font family.
+ *
+ * @param  {Object} props      Additional props applied to save element
+ * @param  {Object} blockType  Block type
+ * @param  {Object} attributes Block attributes
+ * @return {Object}            Filtered props applied to save element
+ */
+function addSaveProps( props, blockType, attributes ) {
+	if ( ! hasBlockSupport( blockType, FONT_FAMILY_SUPPORT_KEY ) ) {
+		return props;
 	}
-	return value;
-};
+
+	if (
+		hasBlockSupport(
+			blockType,
+			'__experimentalSkipTypographySerialization'
+		)
+	) {
+		return props;
+	}
+
+	// Use TokenList to dedupe classes.
+	const classes = new TokenList( props.className );
+	classes.add(
+		`has-${ attributes.style?.typography?.fontFamily }-font-family`
+	);
+	const newClassName = classes.value;
+	props.className = newClassName ? newClassName : undefined;
+
+	return props;
+}
 
 export function FontFamilyEdit( {
 	name,
@@ -42,10 +64,10 @@ export function FontFamilyEdit( {
 		return null;
 	}
 
-	const value = getFontFamilyFromAttributeValue(
+	const value = find(
 		fontFamilies,
-		style.typography?.fontFamily
-	);
+		( { slug } ) => style.typography?.fontFamily === slug
+	)?.fontFamily;
 
 	function onChange( newValue ) {
 		const predefinedFontFamily = find(
@@ -57,9 +79,8 @@ export function FontFamilyEdit( {
 				...style,
 				typography: {
 					...( style.typography || {} ),
-					fontFamily: predefinedFontFamily
-						? `var:preset|font-family|${ predefinedFontFamily.slug }`
-						: newValue || undefined,
+					fontFamily:
+						predefinedFontFamily?.slug || newValue || undefined,
 				},
 			} ),
 		} );
@@ -89,3 +110,9 @@ export function useIsFontFamilyDisabled( { name } ) {
 		! hasBlockSupport( name, FONT_FAMILY_SUPPORT_KEY )
 	);
 }
+
+addFilter(
+	'blocks.getSaveContent.extraProps',
+	'core/fontSize/addSaveProps',
+	addSaveProps
+);
